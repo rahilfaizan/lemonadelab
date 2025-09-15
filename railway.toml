@@ -8,4 +8,4 @@ restartPolicyMaxRetries = 10
 
 [env]
 NODE_ENV = "production"
-PORT = "5005"
+DOMAIN = "faizanrahil.trade"
