@@ -17,11 +17,16 @@ function App() {
     setPublishError(null);
     
     try {
-      const res = await fetch('http://localhost:5005/publish-site', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ template, color, customDomain }),
-      });
+      const API_BASE =
+      process.env.NODE_ENV === "production"
+        ? "" // same origin as your deployed domain
+        : "http://localhost:5005"; // dev server
+    
+    const res = await fetch(`${API_BASE}/publish-site`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ template, color, customDomain }),
+    });
       
       const data = await res.json();
       
