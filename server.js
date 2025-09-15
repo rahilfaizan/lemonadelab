@@ -4,6 +4,13 @@ const fs = require('fs').promises;
 const path = require('path');
 const wildcardSubdomains = require('wildcard-subdomains');
 
+// Load environment variables first
+require('dotenv').config();
+
+// Get environment variables
+const PORT = process.env.PORT || 5005;
+const DOMAIN = process.env.DOMAIN || 'faizanrahil.trade';
+
 const app = express();
 
 // CORS
@@ -214,12 +221,7 @@ app.get('/debug/sites', async (req, res) => {
   }
 });
 
-// Load environment variables
-require('dotenv').config();
-
-// Start server with port from environment
-const PORT = process.env.PORT || 5005;
-const DOMAIN = process.env.DOMAIN || 'faizanrahil.trade';
+// Start server
 
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
