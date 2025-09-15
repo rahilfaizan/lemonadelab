@@ -158,16 +158,16 @@ app.post('/publish-site', async (req, res) => {
 // Route to handle subdomain requests with any path using regex
 app.get(/^\/sites\/([^\/]+)\/(.*)$/, async (req, res) => {
   const subdomain = req.params[0];
-  const path = req.params[1] || '';
+  const filePath = req.params[1] || '';
   
-  console.log(`🌐 Subdomain request: ${subdomain}.${DOMAIN}${path ? '/' + path : ''}`);
+  console.log(`🌐 Subdomain request: ${subdomain}.${DOMAIN}${filePath ? '/' + filePath : ''}`);
   
   // If it's a root request, serve index.html
-  if (!path || path === 'index.html' || path === '') {
-    const filePath = path.join(__dirname, 'generated-sites', subdomain, 'index.html');
+  if (!filePath || filePath === 'index.html' || filePath === '') {
+    const fullPath = path.join(__dirname, 'generated-sites', subdomain, 'index.html');
     try {
-      await fs.access(filePath);
-      res.sendFile(filePath);
+      await fs.access(fullPath);
+      res.sendFile(fullPath);
     } catch {
       res.status(404).send(`
         <!DOCTYPE html>
@@ -189,10 +189,10 @@ app.get(/^\/sites\/([^\/]+)\/(.*)$/, async (req, res) => {
     }
   } else {
     // Handle other file requests (CSS, JS, images, etc.)
-    const filePath = path.join(__dirname, 'generated-sites', subdomain, path);
+    const fullPath = path.join(__dirname, 'generated-sites', subdomain, filePath);
     try {
-      await fs.access(filePath);
-      res.sendFile(filePath);
+      await fs.access(fullPath);
+      res.sendFile(fullPath);
     } catch {
       res.status(404).send('File not found');
     }
