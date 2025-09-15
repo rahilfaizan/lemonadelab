@@ -19,7 +19,10 @@ function App() {
     setPublishError(null);
     
     try {
-      const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5005';// dev server
+      const API_BASE =
+      process.env.NODE_ENV === "production"
+        ? "" // same origin as your deployed domain
+        : "http://localhost:5005"; // dev server
     
     const res = await fetch(`${API_BASE}/publish-site`, {
       method: "POST",
