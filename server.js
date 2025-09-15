@@ -253,8 +253,8 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
-// Handle React app routing (for client-side routing)
-app.get('*', (req, res) => {
+// Handle React app routing (for client-side routing) - catch all other routes
+app.use((req, res, next) => {
   // Only serve React app for main domain, not subdomains
   if (!req.hostname.includes('.')) {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
