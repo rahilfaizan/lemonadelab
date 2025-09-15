@@ -24,6 +24,7 @@
     "eject": "react-scripts eject",
     "server": "node server.js",
     "dev": "concurrently \"npm run server\" \"npm start\"",
+    "start:prod": "npm run build && node server.js",
     "deploy:build": "npm run build && npm run server"
   },
   "eslintConfig": {

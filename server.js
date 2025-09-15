@@ -28,6 +28,7 @@ app.set('trust proxy', true);
 app.use(express.json());
 
 // Configure wildcard subdomains
+
 app.use(wildcardSubdomains({
   namespace: 'sites', // Prefix for subdomain routes
   whitelist: ['www', 'api'], // Subdomains to ignore (www, api, etc.)
@@ -37,9 +38,8 @@ app.use(wildcardSubdomains({
 // Serve static files for subdomains
 app.use('/sites', express.static(path.join(__dirname, 'generated-sites')));
 
-app.get('/', (req, res) => {
-  res.json({ status: 'Working! 🎉', timestamp: new Date().toISOString() });
-});
+// Serve React app static files
+app.use(express.static(path.join(__dirname, 'build')));
 
 app.post('/publish-site', async (req, res) => {
   console.log('📝 Request:', req.body);
@@ -161,14 +161,19 @@ app.get(/^\/sites\/([^\/]+)\/(.*)$/, async (req, res) => {
   const filePath = req.params[1] || '';
   
   console.log(`🌐 Subdomain request: ${subdomain}.${DOMAIN}${filePath ? '/' + filePath : ''}`);
+  console.log(`📁 Looking for file: ${filePath}`);
   
   // If it's a root request, serve index.html
   if (!filePath || filePath === 'index.html' || filePath === '') {
     const fullPath = path.join(__dirname, 'generated-sites', subdomain, 'index.html');
+    console.log(`📄 Checking for index.html at: ${fullPath}`);
+    
     try {
       await fs.access(fullPath);
+      console.log(`✅ Found index.html, serving...`);
       res.sendFile(fullPath);
-    } catch {
+    } catch (error) {
+      console.log(`❌ Website not found: ${subdomain}`);
       res.status(404).send(`
         <!DOCTYPE html>
         <html>
@@ -190,11 +195,31 @@ app.get(/^\/sites\/([^\/]+)\/(.*)$/, async (req, res) => {
   } else {
     // Handle other file requests (CSS, JS, images, etc.)
     const fullPath = path.join(__dirname, 'generated-sites', subdomain, filePath);
+    console.log(`📁 Looking for file at: ${fullPath}`);
+    
     try {
       await fs.access(fullPath);
+      console.log(`✅ Found file, serving...`);
       res.sendFile(fullPath);
-    } catch {
-      res.status(404).send('File not found');
+    } catch (error) {
+      console.log(`❌ File not found: ${fullPath}`);
+      res.status(404).send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>File Not Found</title>
+          <style>
+            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+            .error { color: #e74c3c; }
+          </style>
+        </head>
+        <body>
+          <h1 class="error">📄 File Not Found</h1>
+          <p>The file <strong>${filePath}</strong> was not found on <strong>${subdomain}.${DOMAIN}</strong></p>
+          <p>Please check the URL or go back to <a href="https://${DOMAIN}">${DOMAIN}</a></p>
+        </body>
+        </html>
+      `);
     }
   }
 });
@@ -222,6 +247,21 @@ app.get('/debug/sites', async (req, res) => {
 });
 
 // Start server
+
+// Serve React app for main domain (must be last)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
+// Handle React app routing (for client-side routing)
+app.get('*', (req, res) => {
+  // Only serve React app for main domain, not subdomains
+  if (!req.hostname.includes('.')) {
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+  } else {
+    res.status(404).send('Not found');
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
