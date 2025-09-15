@@ -20,11 +20,11 @@ app.set('trust proxy', true);
 
 app.use(express.json());
 
-// Configure wildcard subdomains for faizanrahil.trade
+// Configure wildcard subdomains
 app.use(wildcardSubdomains({
   namespace: 'sites', // Prefix for subdomain routes
   whitelist: ['www', 'api'], // Subdomains to ignore (www, api, etc.)
-  base: 'faizanrahil.trade' // Your domain
+  base: DOMAIN // Your domain from environment
 }));
 
 // Serve static files for subdomains
@@ -130,10 +130,10 @@ app.post('/publish-site', async (req, res) => {
 
     res.json({
       success: true,
-      domain: `${subdomain}.faizanrahil.trade`,
+      domain: `${subdomain}.${DOMAIN}`,
       subdomain,
-      siteUrl: `https://${subdomain}.faizanrahil.trade`,
-      localUrl: `http://localhost:5005/sites/${subdomain}`,
+      siteUrl: `https://${subdomain}.${DOMAIN}`,
+      localUrl: `http://localhost:${PORT}/sites/${subdomain}`,
       message: 'Website created successfully!',
       template,
       color
@@ -153,7 +153,7 @@ app.get(/^\/sites\/([^\/]+)\/(.*)$/, async (req, res) => {
   const subdomain = req.params[0];
   const path = req.params[1] || '';
   
-  console.log(`🌐 Subdomain request: ${subdomain}.faizanrahil.trade${path ? '/' + path : ''}`);
+  console.log(`🌐 Subdomain request: ${subdomain}.${DOMAIN}${path ? '/' + path : ''}`);
   
   // If it's a root request, serve index.html
   if (!path || path === 'index.html' || path === '') {
@@ -174,8 +174,8 @@ app.get(/^\/sites\/([^\/]+)\/(.*)$/, async (req, res) => {
         </head>
         <body>
           <h1 class="error">🚫 Website Not Found</h1>
-          <p>The website <strong>${subdomain}.faizanrahil.trade</strong> does not exist.</p>
-          <p>Please check the URL or create a new website at <a href="https://faizanrahil.trade">faizanrahil.trade</a></p>
+          <p>The website <strong>${subdomain}.${DOMAIN}</strong> does not exist.</p>
+          <p>Please check the URL or create a new website at <a href="https://${DOMAIN}">${DOMAIN}</a></p>
         </body>
         </html>
       `);
@@ -214,8 +214,12 @@ app.get('/debug/sites', async (req, res) => {
   }
 });
 
+// Load environment variables
+require('dotenv').config();
+
 // Start server with port from environment
 const PORT = process.env.PORT || 5005;
+const DOMAIN = process.env.DOMAIN || 'faizanrahil.trade';
 
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
